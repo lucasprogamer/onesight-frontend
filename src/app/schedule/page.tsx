@@ -15,7 +15,6 @@ interface Schedule {
 
 export default function SchedulePage() {
     const [schedules, setSchedules] = useState<Schedule[]>([]);
-    const [error, setError] = useState<string | null>(null);
     const [date, setDate] = useState<Date>(new Date());
     const [time, setTime] = useState<string>('12:00');
     const [locale, setLocale] = useState('en-US');
@@ -26,6 +25,7 @@ export default function SchedulePage() {
     const [selectedScheduleId, setSelectedScheduleId] = useState<number | null>(null);
     const [showToast, setShowToast] = useState<boolean>(false);
     const [toastMessage, setToastMessage] = useState<string>('');
+    const [toastType, setToastType] = useState<'sucess' | 'error'>('sucess');
 
     useEffect(() => {
         const fetchSchedules = async () => {
@@ -33,7 +33,7 @@ export default function SchedulePage() {
                 const data = await getSchedules(date);
                 setSchedules(data);
             } catch (err: any) {
-                setError(err.message);
+
             }
         };
 
@@ -74,7 +74,7 @@ export default function SchedulePage() {
             showSuccessToast("Evento adicionado com sucesso!");
             resetForm();
         } catch (err: any) {
-            setError(err.message);
+            showErrorToast(err.message);
         }
     };
 
@@ -95,7 +95,7 @@ export default function SchedulePage() {
             resetForm();
             setEditingSchedule(null);
         } catch (err: any) {
-            setError(err.message);
+            showErrorToast(err.message);
         }
     };
 
@@ -107,7 +107,7 @@ export default function SchedulePage() {
             setShowModal(false);
             showSuccessToast("Evento excluído com sucesso!");
         } catch (err: any) {
-            setError(err.message);
+            showErrorToast(err.message);
         }
     };
 
@@ -130,18 +130,27 @@ export default function SchedulePage() {
         setTimeout(() => setShowToast(false), 3000);
     };
 
+
+    const showErrorToast = (message: string) => {
+        setToastMessage(message);
+        setShowToast(true);
+        setToastType('error')
+        setTimeout(() => setShowToast(false), 5000);
+    };
+
+
     const eventsForSelectedDate = getEventsForDate(date);
 
     return (
         <div className="p-6 relative">
-            {/* Toast de sucesso */}
             {showToast && (
-                <div className="absolute top-4 right-4 bg-green-500 text-white py-2 px-4 rounded shadow-lg">
+                <div className={`absolute top-4 right-4 ${toastType === 'sucess'
+                    ? 'bg-green-500'
+                    : 'bg-red-500'
+                    } text-white py-2 px-4 rounded shadow-lg`}>
                     {toastMessage}
                 </div>
             )}
-
-            {error && <p className="text-red-500 mb-4">{error}</p>}
 
             <div className="flex flex-col md:flex-row gap-6">
                 {/* Calendário */}
@@ -195,7 +204,7 @@ export default function SchedulePage() {
             {/* Lista de eventos */}
             <div className="mt-6">
                 <h2 className="text-xl font-semibold mb-4">
-                    Eventos para <span suppressHydrationWarning>{date ? formatDate(date) : ''}</span>
+                    Eventos para <span>{date ? formatDate(date) : ''}</span>
                 </h2>
 
                 {eventsForSelectedDate.length === 0 ? (
@@ -241,35 +250,38 @@ export default function SchedulePage() {
                                 >
                                     <TrashIcon className="h-5 w-5" />
                                 </button>
-                            </div>
-                        </div>
+                            </div >
+                        </div >
                     ))
-                )}
-            </div>
+                )
+                }
+            </div >
 
             {/* Modal de confirmação de exclusão */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-lg text-black w-1/3">
-                        <h3 className="text-lg font-semibold mb-4">Confirmar exclusão</h3>
-                        <p className="mb-4">Tem certeza que deseja excluir este evento?</p>
-                        <div className="flex justify-end gap-4">
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleDeleteEvent}
-                                className="bg-red-500 hover:bg-red-600 text-white p-2 rounded"
-                            >
-                                Excluir
-                            </button>
+            {
+                showModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-lg shadow-lg text-black w-1/3">
+                            <h3 className="text-lg font-semibold mb-4">Confirmar exclusão</h3>
+                            <p className="mb-4">Tem certeza que deseja excluir este evento?</p>
+                            <div className="flex justify-end gap-4">
+                                <button
+                                    onClick={() => setShowModal(false)}
+                                    className="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleDeleteEvent}
+                                    className="bg-red-500 hover:bg-red-600 text-white p-2 rounded"
+                                >
+                                    Excluir
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }
