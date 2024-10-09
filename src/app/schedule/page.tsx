@@ -111,6 +111,11 @@ export default function SchedulePage() {
         }
     };
 
+    const handleUpdateDate = async (value: Date) => {
+        setDate(value);
+        resetForm();
+    }
+
     const resetForm = () => {
         setNewEvent('');
         setTime('12:00');
@@ -159,7 +164,7 @@ export default function SchedulePage() {
                         locale={locale}
                         onChange={value => {
                             if (value instanceof Date) {
-                                setDate(value);
+                                handleUpdateDate(value);
                             }
                         }}
                         value={date}
